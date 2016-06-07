@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="DocOnce: https://github.com/hplgit/doconce/" />
+<meta name="description" content="Generating self-signed certificates with OpenSSL">
+
+<title>Generating self-signed certificates with OpenSSL</title>
+
+
+
+
+
+
+
+<!-- reveal.js: http://lab.hakim.se/reveal-js/ -->
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+<link rel="stylesheet" href="reveal.js/css/reveal.css">
+<link rel="stylesheet" href="reveal.js/css/theme/darkgray.css" id="theme">
+<!--
+<link rel="stylesheet" href="reveal.js/css/reveal.css">
+<link rel="stylesheet" href="reveal.js/css/theme/beige.css" id="theme">
+<link rel="stylesheet" href="reveal.js/css/theme/beigesmall.css" id="theme">
+<link rel="stylesheet" href="reveal.js/css/theme/solarized.css" id="theme">
+<link rel="stylesheet" href="reveal.js/css/theme/serif.css" id="theme">
+<link rel="stylesheet" href="reveal.js/css/theme/night.css" id="theme">
+<link rel="stylesheet" href="reveal.js/css/theme/moon.css" id="theme">
+<link rel="stylesheet" href="reveal.js/css/theme/simple.css" id="theme">
+<link rel="stylesheet" href="reveal.js/css/theme/sky.css" id="theme">
+<link rel="stylesheet" href="reveal.js/css/theme/darkgray.css" id="theme">
+<link rel="stylesheet" href="reveal.js/css/theme/default.css" id="theme">
+<link rel="stylesheet" href="reveal.js/css/theme/cbc.css" id="theme">
+<link rel="stylesheet" href="reveal.js/css/theme/simula.css" id="theme">
+<link rel="stylesheet" href="reveal.js/css/theme/black.css" id="theme">
+<link rel="stylesheet" href="reveal.js/css/theme/white.css" id="theme">
+<link rel="stylesheet" href="reveal.js/css/theme/league.css" id="theme">
+-->
+
+<!-- For syntax highlighting -->
+<link rel="stylesheet" href="reveal.js/lib/css/zenburn.css">
+
+<!-- Printing and PDF exports -->
+<script>
+var link = document.createElement( 'link' );
+link.rel = 'stylesheet';
+link.type = 'text/css';
+link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+document.getElementsByTagName( 'head' )[0].appendChild( link );
+</script>
+
+<style type="text/css">
+    hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
+    p.caption { width: 80%; font-size: 60%; font-style: italic; text-align: left; }
+    hr.figure { border: 0; width: 80%; border-bottom: 1px solid #aaa}
+    .reveal .alert-text-small   { font-size: 80%;  }
+    .reveal .alert-text-large   { font-size: 130%; }
+    .reveal .alert-text-normal  { font-size: 90%;  }
+    .reveal .alert {
+             padding:8px 35px 8px 14px; margin-bottom:18px;
+             text-shadow:0 1px 0 rgba(255,255,255,0.5);
+             border:5px solid #bababa;
+             -webkit-border-radius: 14px; -moz-border-radius: 14px;
+             border-radius:14px;
+             background-position: 10px 10px;
+             background-repeat: no-repeat;
+             background-size: 38px;
+             padding-left: 30px; /* 55px; if icon */
+     }
+     .reveal .alert-block {padding-top:14px; padding-bottom:14px}
+     .reveal .alert-block > p, .alert-block > ul {margin-bottom:1em}
+     /*.reveal .alert li {margin-top: 1em}*/
+     .reveal .alert-block p+p {margin-top:5px}
+     /*.reveal .alert-notice { background-image: url(http://hplgit.github.io/doconce/bundled/html_images/small_gray_notice.png); }
+     .reveal .alert-summary  { background-image:url(http://hplgit.github.io/doconce/bundled/html_images/small_gray_summary.png); }
+     .reveal .alert-warning { background-image: url(http://hplgit.github.io/doconce/bundled/html_images/small_gray_warning.png); }
+     .reveal .alert-question {background-image:url(http://hplgit.github.io/doconce/bundled/html_images/small_gray_question.png); } */
+
+</style>
+
+
+
+<!-- Styles for table layout of slides -->
+<style type="text/css">
+td.padding {
+  padding-top:20px;
+  padding-bottom:20px;
+  padding-right:50px;
+  padding-left:50px;
+}
+</style>
+
+</head>
+
+<body>
+<div class="reveal">
+
+<!-- Any section element inside the <div class="slides"> container
+     is displayed as a slide -->
+
+<div class="slides">
+
+
+
+    
+
+
+
+<section>
+<!-- ------------------- main content ---------------------- -->
+
+
+
+<center><h1 style="text-align: center;">Generating self-signed certificates with OpenSSL</h1></center>  <!-- document title -->
+
+<p>
+<!-- author(s): Alfred Thompson -->
+
+<center>
+<b>Alfred Thompson</b>  (<tt>almacro at acm.org</tt>)
+</center>
+
+<p>&nbsp;<br>
+<!-- institution(s) -->
+
+<br>
+<p>&nbsp;<br>
+<center><h4>Apr 28, 2016</h4></center> <!-- date -->
+<br>
+</section>
+
+
+<section>
+<h2 id="___sec0">how do I generate a self-signed cert? </h2>
+
+<ul>
+<p><li> Simple web searches give this one-liner:</li>
+</ul>
+<p>
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+
+<!-- code=bash (!bc shpro) typeset with pygments style "native" -->
+<div class="highlight" style="background: #202020"><pre style="font-size: 80%; line-height: 125%"><span></span>openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days <span style="color: #3677a9">365</span> -nodes
+</pre></div>
+
+</div>
+</section>
+
+
+<section>
+<h2 id="___sec1">Thank You! </h2>
+
+<ul>
+<p><li> Oh Wait-</li>
+</ul>
+</section>
+
+
+<section>
+<h2 id="___sec2">what is a self-signed cert? </h2>
+
+<ul>
+<p><li> self-signed certs are not validated with any third party unless you import
+  them to the browsers previously.</li>
+<p><li> suitable for non-production and test scenarios</li>
+<p><li> save money</li>
+
+<ul>
+
+<p><li> don't pay for CA signed cert until needed</li>
+</ul>
+<p><li> save time</li>
+
+<ul>
+
+<p><li> don't go through the certification process until needed</li>
+</ul>
+<p><li> save complexity</li>
+
+<ul>
+
+<p><li> no need to deal with certificate chains for simple dev/test setup</li>
+</ul>
+<p><li> browsers and clients will complain when self-signed certs in use</li>
+
+<ul>
+
+<p><li> OK to override for dev/test systems</li>
+</ul>
+<p><li> <b>NEVER</b> use self-signed certs on production systems!</li>
+</ul>
+</section>
+
+
+<section>
+<h2 id="___sec3">what is ssl? </h2>
+
+<ul>
+<p><li> Secure Sockets Layer</li>
+<p><li> cryptographic protocol for communication security on computer network</li>
+<p><li> encryption technology developed by Netscape</li>
+<p><li> encrypts connection between web server and browser</li>
+<p><li> encrypted connections use https, not http</li>
+<p><li> used to prevent eavesdropping, data tampering, and message forgery</li>
+<p><li> SSL 3.0 draft published by IETF in RFC 6101</li>
+</ul>
+</section>
+
+
+<section>
+<h2 id="___sec4">what is tls? </h2>
+
+<ul>
+<p><li> Transport Layer Security</li>
+
+<ul>
+
+<p><li> use symmetric encryption/shared secret for privacy</li>
+
+<p><li> use asymmetric encryption/PKI for authentication</li>
+
+<p><li> use MACs and integrity checks for reliability</li>
+</ul>
+<p><li> based on, successor to SSL</li>
+<p><li> SSLv3 and TLS 1.0 are mostly the same</li>
+<p><li> TLS 1.0 defined in RFC 2246</li>
+<p><li> TLS 1.2 (latest) defined in RFC 5246</li>
+<p><li> TLS 1.3 draft started January 2016</li>
+</ul>
+</section>
+
+
+<section>
+<h2 id="___sec5">what is x509? </h2>
+
+<ul>
+<p><li> PKI standard for digital certificates and public key encryption</li>
+<p><li> digital certificate is packaging for a public key</li>
+<p><li> associates subject, issuer, expiry, usage information with a public key</li>
+<p><li> key to TLS</li>
+
+<ul>
+
+<p><li> certificate revocation list</li>
+
+<p><li> certification path validation algorithm</li>
+</ul>
+<p><li> standardized by International Telegraph Union (ITU)</li>
+</ul>
+</section>
+
+
+<section>
+<h2 id="___sec6">what is openssl? </h2>
+
+<ul>
+<p><li> open source implementation of SSL and TLS protocols</li>
+<p><li> software library used for secure communications, authentication</li>
+<p><li> started in 1998 to produce free encryption tools</li>
+<p><li> based on fork of SSLeay</li>
+</ul>
+</section>
+
+
+<section>
+<h2 id="___sec7">is openssl bad? </h2>
+
+<ul>
+<p><li> Heartbleed</li>
+
+<ul>
+
+<p><li> SSL/TLS broken by NSA since 2010</li>
+</ul>
+<p><li> Snowden dump</li>
+
+<ul>
+
+<p><li> Wikileaks published from 2013</li>
+</ul>
+<p><li> weak ciphers/algos</li>
+
+<ul>
+
+<p><li> POODLE: padding attack on CBC mode</li>
+
+<p><li> timing attacks</li>
+
+<p><li> compression attacks</li>
+</ul>
+<p><li> SSL versions 1.0 - 3.0 are <b>deprecated</b></li>
+<p><li> but its OK for use as a tool for generating certs</li>
+</ul>
+</section>
+
+
+<section>
+<h2 id="___sec8">what is libressl? </h2>
+
+<ul>
+<p><li> OpenBSD fork of OpenSSL 1.0.1g</li>
+
+<ul>
+
+<p><li> remove secure vulnerabilities such as Heartbleed</li>
+
+<p><li> refactor OpenSSL for more secure implementation</li>
+</ul>
+<p><li> drops all compromised ciphers/algos</li>
+
+<ul>
+
+<p><li> initially removed 90K lines of C</li>
+</ul>
+<p><li> prefer LibreSSL over OpenSSL for cryptographic work</li>
+</ul>
+</section>
+
+
+<section>
+<h2 id="___sec9">what is sha2? </h2>
+
+<ul>
+<p><li> SHA: Secure Hash Algorithm</li>
+<p><li> SHA2 == SHA-256</li>
+<p><li> refers to stronger hashing methods</li>
+
+<ul>
+
+<p><li> SHA-1 known to be weaker than designed since 2005</li>
+
+<p><li> Internet use deprecated since 2011 (Baseline Requirements for SSL)</li>
+</ul>
+<p><li> overcome weakness of MD5 and SHA1 digests</li>
+
+<ul>
+
+<p><li> susceptible to collision attacks</li>
+</ul>
+<p><li> preferred (demanded?) by Google</li>
+
+<ul>
+
+<p><li> SHA-1 deprecated in Chrome browser v39 (Nov 2014)</li>
+
+<p><li> encourage webmasters to address security vulnerabilities</li>
+</ul>
+<p><li> SHA-1 is OK for trusted root certs</li>
+
+<ul>
+
+<p><li> clients trust identity, not hash signature</li>
+</ul>
+<p>
+</ul>
+</section>
+
+
+<section>
+<h2 id="___sec10">how do I generate a self-signed cert? </h2>
+
+<ol>
+<p><li> make a keyphrase</li>
+<p><li> make a private key</li>
+<p><li> make an OpenSSL config file</li>
+<p><li> make a CSR, verify it</li>
+<p><li> make a self-signed cert, verify it</li>
+<p><li> strip passphrase, if needed</li>
+<p><li> convert x509 to PKCS12</li>
+<p><li> convert PKCS12 to JKS</li>
+</ol>
+</section>
+
+
+<section>
+<h2 id="___sec11">Generate a keyphrase </h2>
+
+<ul>
+<p><li> make up a phrase to protect private key</li>
+
+<ul>
+
+<p><li> make up a password</li>
+
+<p><li> select a string from ciphertext</li>
+
+<p><li> generate a diceware passphrase using RNG</li>
+</ul>
+<p><li> store phrase in keypass.txt</li>
+</ul>
+</section>
+
+
+<section>
+<h2 id="___sec12">Generate a private key </h2>
+
+<ul>
+<p><li> Use keypass.txt with OpenSSL to create a private key</li>
+</ul>
+<p>
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+
+<!-- code=bash (!bc shpro) typeset with pygments style "native" -->
+<div class="highlight" style="background: #202020"><pre style="font-size: 80%; line-height: 125%"><span></span>cat keypass.txt <span style="color: #d0d0d0">|</span> <span style="color: #ed9d13">\</span>
+openssl genrsa -aes256 -passout fd:0 -out host.key 2048
+</pre></div>
+
+</div>
+</section>
+
+
+<section>
+<h2 id="___sec13">Create a config file for OpenSSL </h2>
+
+<ul>
+<p><li> We use the config file to control interactive and batch operation</li>
+<p><li> Sections
+
+<ol type="a"></li>
+ <p><li> [default]</li>
+ <p><li> [req]</li>
+ <p><li> [server_dn]</li>
+ <p><li> [server_reqext]</li>
+ <p><li> [alt_names]</li>
+</ol>
+<p><li> Later examples assume the config file is saved as "./etc/host-cert.cnf"</li>
+</ul>
+
+<h3 id="___sec14">[default] </h3>
+
+<p>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+
+<!-- code=bash (!bc shpro) typeset with pygments style "native" -->
+<div class="highlight" style="background: #202020"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #d0d0d0">[</span> default <span style="color: #d0d0d0">]</span>
+<span style="color: #40ffff">SAN</span>                             <span style="color: #d0d0d0">=</span> DNS:yourdomain.tld    <span style="color: #999999; font-style: italic"># Default value</span>
+</pre></div>
+
+</div>
+
+<h3 id="___sec15">[req] </h3>
+
+<p>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+
+<!-- code=bash (!bc shpro) typeset with pygments style "native" -->
+<div class="highlight" style="background: #202020"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #d0d0d0">[</span> req <span style="color: #d0d0d0">]</span>
+<span style="color: #40ffff">default_bits</span>                    <span style="color: #d0d0d0">=</span> <span style="color: #3677a9">2048</span>                  <span style="color: #999999; font-style: italic"># RSA key size</span>
+<span style="color: #40ffff">encrypt_key</span>                     <span style="color: #d0d0d0">=</span> no                    <span style="color: #999999; font-style: italic"># Protect private key</span>
+<span style="color: #40ffff">default_md</span>                      <span style="color: #d0d0d0">=</span> sha256                <span style="color: #999999; font-style: italic"># MD to use</span>
+<span style="color: #40ffff">utf8</span>                            <span style="color: #d0d0d0">=</span> yes                   <span style="color: #999999; font-style: italic"># Input is UTF-8</span>
+<span style="color: #40ffff">string_mask</span>                     <span style="color: #d0d0d0">=</span> utf8only              <span style="color: #999999; font-style: italic"># Emit UTF-8 strings</span>
+<span style="color: #40ffff">prompt</span>                          <span style="color: #d0d0d0">=</span> yes                   <span style="color: #999999; font-style: italic"># Prompt for DN</span>
+<span style="color: #40ffff">distinguished_name</span>              <span style="color: #d0d0d0">=</span> server_dn             <span style="color: #999999; font-style: italic"># DN template</span>
+<span style="color: #40ffff">req_extensions</span>                  <span style="color: #d0d0d0">=</span> server_reqext         <span style="color: #999999; font-style: italic"># Desired extensions</span>
+</pre></div>
+
+</div>
+
+<h3 id="___sec16">[server_dn] </h3>
+
+<p>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+
+<!-- code=bash (!bc shpro) typeset with pygments style "native" -->
+<div class="highlight" style="background: #202020"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #d0d0d0">[</span> server_dn <span style="color: #d0d0d0">]</span>
+0.domainComponent               <span style="color: #d0d0d0">=</span> <span style="color: #ed9d13">&quot;1. Domain Component            (eg, com)       &quot;</span>
+1.domainComponent               <span style="color: #d0d0d0">=</span> <span style="color: #ed9d13">&quot;2. Domain Component            (eg, company)   &quot;</span>
+2.domainComponent               <span style="color: #d0d0d0">=</span> <span style="color: #ed9d13">&quot;3. Domain Component            (eg, pki)       &quot;</span>
+<span style="color: #40ffff">organizationName</span>                <span style="color: #d0d0d0">=</span> <span style="color: #ed9d13">&quot;4. Organization Name           (eg, company)   &quot;</span>
+<span style="color: #40ffff">organizationName_default</span>        <span style="color: #d0d0d0">=</span> <span style="color: #ed9d13">&quot;UBAR Corporation&quot;</span>
+<span style="color: #40ffff">organizationalUnitName</span>          <span style="color: #d0d0d0">=</span> <span style="color: #ed9d13">&quot;5. Organizational Unit Name    (eg, section)   &quot;</span>
+<span style="color: #40ffff">organizationalUnitName_default</span>  <span style="color: #d0d0d0">=</span> <span style="color: #ed9d13">&quot;Web Servers&quot;</span>
+<span style="color: #40ffff">commonName</span>                      <span style="color: #d0d0d0">=</span> <span style="color: #ed9d13">&quot;6. Common Name                 (eg, FQDN)      &quot;</span>
+<span style="color: #40ffff">commonName_max</span>                  <span style="color: #d0d0d0">=</span> 64
+<span style="color: #40ffff">countryName</span>                     <span style="color: #d0d0d0">=</span> <span style="color: #ed9d13">&quot;7. Country Name                (2 letter code) &quot;</span>
+<span style="color: #40ffff">countryName_default</span>             <span style="color: #d0d0d0">=</span> <span style="color: #ed9d13">&quot;US&quot;</span>
+<span style="color: #40ffff">stateOrProvinceName</span>             <span style="color: #d0d0d0">=</span> <span style="color: #ed9d13">&quot;8. State or Province Name      (full name)     &quot;</span>
+<span style="color: #40ffff">stateOrProvinceName</span>             <span style="color: #d0d0d0">=</span> <span style="color: #ed9d13">&quot;California&quot;</span>
+<span style="color: #40ffff">localityName</span>                    <span style="color: #d0d0d0">=</span> <span style="color: #ed9d13">&quot;9. Locality Name               (eg, city)      &quot;</span>
+</pre></div>
+
+</div>
+
+<h3 id="___sec17">[server_reqext] </h3>
+
+<p>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+
+<!-- code=bash (!bc shpro) typeset with pygments style "native" -->
+<div class="highlight" style="background: #202020"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #d0d0d0">[</span> server_reqext <span style="color: #d0d0d0">]</span>
+<span style="color: #40ffff">basicConstraints</span>                <span style="color: #d0d0d0">=</span> CA:false
+<span style="color: #40ffff">keyUsage</span>                        <span style="color: #d0d0d0">=</span> nonRepudiation,digitalSignature,keyEncipherment
+<span style="color: #40ffff">extendedKeyUsage</span>                <span style="color: #d0d0d0">=</span> serverAuth,clientAuth
+<span style="color: #40ffff">subjectKeyIdentifier</span>            <span style="color: #d0d0d0">=</span> <span style="color: #24909d">hash</span>
+<span style="color: #40ffff">subjectAltName</span>                  <span style="color: #d0d0d0">=</span> @alt_names
+</pre></div>
+
+</div>
+
+<h3 id="___sec18">[alt_names] </h3>
+
+<p>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+
+<!-- code=bash (!bc shpro) typeset with pygments style "native" -->
+<div class="highlight" style="background: #202020"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #d0d0d0">[</span>alt_names<span style="color: #d0d0d0">]</span>
+DNS.1 <span style="color: #d0d0d0">=</span> <span style="color: #40ffff">$ENV</span>::DNS_1
+DNS.2 <span style="color: #d0d0d0">=</span> <span style="color: #40ffff">$ENV</span>::DNS_2
+DNS.3 <span style="color: #d0d0d0">=</span> <span style="color: #40ffff">$ENV</span>::DNS_3
+</pre></div>
+
+</div>
+</section>
+
+
+<section>
+<h2 id="___sec19">Generate Certificate Signing Request (CSR)) </h2>
+
+<ul>
+<p><li> Use private key, creds and config file to create a CSR</li>
+<p><li> Specify any alternate names as needed</li>
+</ul>
+<p>
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+
+<!-- code=bash (!bc shpro) typeset with pygments style "native" -->
+<div class="highlight" style="background: #202020"><pre style="font-size: 80%; line-height: 125%"><span></span>cat keypass.txt <span style="color: #d0d0d0">|</span> <span style="color: #ed9d13">\</span>
+<span style="color: #40ffff">SAN</span><span style="color: #d0d0d0">=</span>DNS:ubar.com,DNS:f.ubar.com <span style="color: #ed9d13">\</span>
+<span style="color: #40ffff">DNS_1</span><span style="color: #d0d0d0">=</span><span style="color: #ed9d13">&#39;f.ubar.com&#39;</span> <span style="color: #ed9d13">\</span>
+<span style="color: #40ffff">DNS_2</span><span style="color: #d0d0d0">=</span><span style="color: #ed9d13">&#39;eng.ubar.com&#39;</span> <span style="color: #ed9d13">\</span>
+<span style="color: #40ffff">DNS_3</span><span style="color: #d0d0d0">=</span><span style="color: #ed9d13">&#39;www.ubar.com&#39;</span> <span style="color: #ed9d13">\</span>
+bash -c <span style="color: #ed9d13">&#39;openssl req -new \</span>
+<span style="color: #ed9d13">  -config etc/host-cert.cnf \</span>
+<span style="color: #ed9d13">  -subj &quot;/DC=com/DC=ubar/DC=f/O=UBAR CO/OU=Engineering/CN=f.ubar.com/C=US/ST=CA/L=San\ Francisco&quot; \</span>
+<span style="color: #ed9d13">  -passout fd:0 \</span>
+<span style="color: #ed9d13">  -out host.csr \</span>
+<span style="color: #ed9d13">  -keyout host.key&#39;</span>
+</pre></div>
+
+</div>
+
+
+<ul>
+<p><li> view the CSR and verify it looks OK</li>
+</ul>
+<p>
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+
+<!-- code=bash (!bc shpro) typeset with pygments style "native" -->
+<div class="highlight" style="background: #202020"><pre style="font-size: 80%; line-height: 125%"><span></span>openssl req -text -noout -verify -in host.csr
+</pre></div>
+
+</div>
+</section>
+
+
+<section>
+<h2 id="___sec20">Generate Self-Signed Certificate </h2>
+
+<ul>
+<p><li> Use the CSR and private key to generate a cert</li>
+</ul>
+<p>
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+
+<!-- code=bash (!bc shpro) typeset with pygments style "native" -->
+<div class="highlight" style="background: #202020"><pre style="font-size: 80%; line-height: 125%"><span></span>openssl x509 -req <span style="color: #ed9d13">\</span>
+  -sha256 <span style="color: #ed9d13">\</span>
+  -days <span style="color: #3677a9">3650</span> <span style="color: #ed9d13">\</span>
+  -in host.csr <span style="color: #ed9d13">\</span>
+  -signkey host.key <span style="color: #ed9d13">\</span>
+  -out host.crt
+</pre></div>
+
+</div>
+
+
+<ul>
+<p><li> view the cert and verify it looks OK</li>
+</ul>
+<p>
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+
+<!-- code=bash (!bc shpro) typeset with pygments style "native" -->
+<div class="highlight" style="background: #202020"><pre style="font-size: 80%; line-height: 125%"><span></span>openssl x509 -in host.crt -text -noout
+</pre></div>
+
+</div>
+</section>
+
+
+<section>
+<h2 id="___sec21">Strip Passphrase </h2>
+
+<ul>
+<p><li> Strip passphrase from the private key if needed</li>
+<p><li> Otherwise servers will prompt for private key passphrase on startup</li>
+<p><li> Secure phraseless keys from outsider access
+
+<ol type="a"></li>
+ <p><li> use chmod and/or ACLs to restrict access</li>
+ <p><li> do not put phraseless keys in public places (web/file servers, etc)</li>
+</ol>
+<p>
+</ul>
+<p>
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+
+<!-- code=bash (!bc shpro) typeset with pygments style "native" -->
+<div class="highlight" style="background: #202020"><pre style="font-size: 80%; line-height: 125%"><span></span><span style="color: #6ab825; font-weight: bold">$(</span>which openssl<span style="color: #6ab825; font-weight: bold">)</span> rsa -in host.key -out host-nopass.key
+</pre></div>
+
+</div>
+</section>
+
+
+<section>
+<h2 id="___sec22">Convert x509 certificate for PKCS12 </h2>
+
+<ul>
+<p><li> Public-Key Cryptography Standard-12 standard developed by RSA</li>
+<p><li> PKCS12 is an archive file format
+
+<ol type="a"></li>
+ <p><li> Stores multiple crypto objects in an archive</li>
+</ol>
+<p><li> Optional step if this cert needs to go in Java Keystore</li>
+<p><li> PKCS12 also used by certain keychain applications</li>
+<p><li> Generate a passphrase for PKCS12 file just like keypass.txt</li>
+</ul>
+<p>
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+
+<!-- code=bash (!bc shpro) typeset with pygments style "native" -->
+<div class="highlight" style="background: #202020"><pre style="font-size: 80%; line-height: 125%"><span></span>cat p12pass.txt <span style="color: #d0d0d0">|</span> <span style="color: #ed9d13">\</span>
+<span style="color: #6ab825; font-weight: bold">$(</span>which openssl<span style="color: #6ab825; font-weight: bold">)</span> pkcs12 -export <span style="color: #ed9d13">\</span>
+  -passout fd:0 <span style="color: #ed9d13">\</span>
+  -in host.crt <span style="color: #ed9d13">\</span>
+  -inkey host.key <span style="color: #ed9d13">\</span>
+  -out host.p12 <span style="color: #ed9d13">\</span>
+  -name <span style="color: #ed9d13">&quot;f.ubar.com&quot;</span>
+</pre></div>
+
+</div>
+</section>
+
+
+<section>
+<h2 id="___sec23">Convert PKCS12 to JKS </h2>
+
+<ul>
+<p><li> Java KeyStores are defined as part of</li> 
+<p><li> A JKS file is a repository of security certificates and keys</li>
+<p><li> A keystore keeps crypto objects to be used in encryption and signing</li>
+<p><li> A truststore keeps certificates that an application trusts</li>
+
+<ul>
+
+<p><li> Generally CA certs, but can also store self-signed certs</li>
+
+<p><li> Establishes a trust relationship for any certs signed by trusted CAs</li>
+</ul>
+<p><li> JCEKS extends JKS</li>
+
+<ul>
+
+<p><li> Uses SunJCE provider instead of SUN provider</li>
+
+<p><li> 3DES encryption provides stronger protection of private keys</li>
+</ul>
+<p><li> Generate a passphrase for Java keystore just like keypass.txt</li>
+</ul>
+<p>
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+
+<!-- code=bash (!bc shpro) typeset with pygments style "native" -->
+<div class="highlight" style="background: #202020"><pre style="font-size: 80%; line-height: 125%"><span></span>keytool -importkeystore <span style="color: #ed9d13">\</span>
+        -deststorepass <span style="color: #ed9d13">`</span>cat jkspass.txt<span style="color: #ed9d13">`</span> <span style="color: #ed9d13">\</span>
+        -destkeypass <span style="color: #ed9d13">`</span>cat jkspass.txt<span style="color: #ed9d13">`</span> <span style="color: #ed9d13">\</span>
+        -destkeystore host.jceks <span style="color: #ed9d13">\</span>
+        -deststoretype JCEKS <span style="color: #ed9d13">\</span>
+        -srckeystore host.p12 <span style="color: #ed9d13">\</span>
+        -srcstoretype PKCS12 <span style="color: #ed9d13">\</span>
+        -srcstorepass <span style="color: #ed9d13">`</span>cat p12pass.txt<span style="color: #ed9d13">`</span> <span style="color: #ed9d13">\</span>
+        -alias f.ubar.com
+</pre></div>
+
+</div>
+
+
+<ul>
+<p><li> view the keystore and verify it looks OK</li>
+</ul>
+<p>
+
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+
+<!-- code=bash (!bc shpro) typeset with pygments style "native" -->
+<div class="highlight" style="background: #202020"><pre style="font-size: 80%; line-height: 125%"><span></span>keytool -list <span style="color: #ed9d13">\</span>
+        -keystore host.jceks <span style="color: #ed9d13">\</span>
+        -storetype JCEKS <span style="color: #ed9d13">\</span>
+        -storepass <span style="color: #ed9d13">`</span>cat jkspass.txt<span style="color: #ed9d13">`</span>
+</pre></div>
+
+</div>
+
+<h2 id="___sec24">All Done </h2>
+
+<ul>
+<p><li> Thanks for watching!</li>
+</ul>
+</section>
+
+
+
+</div> <!-- class="slides" -->
+</div> <!-- class="reveal" -->
+
+<script src="reveal.js/lib/js/head.min.js"></script>
+<script src="reveal.js/js/reveal.js"></script>
+
+<script>
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+    // Display navigation controls in the bottom right corner
+    controls: true,
+
+    // Display progress bar (below the horiz. slider)
+    progress: true,
+
+    // Display the page number of the current slide
+    slideNumber: true,
+
+    // Push each slide change to the browser history
+    history: false,
+
+    // Enable keyboard shortcuts for navigation
+    keyboard: true,
+
+    // Enable the slide overview mode
+    overview: true,
+
+    // Vertical centering of slides
+    //center: true,
+    center: false,
+
+    // Enables touch navigation on devices with touch input
+    touch: true,
+
+    // Loop the presentation
+    loop: false,
+
+    // Change the presentation direction to be RTL
+    rtl: false,
+
+    // Turns fragments on and off globally
+    fragments: true,
+
+    // Flags if the presentation is running in an embedded mode,
+    // i.e. contained within a limited portion of the screen
+    embedded: false,
+
+    // Number of milliseconds between automatically proceeding to the
+    // next slide, disabled when set to 0, this value can be overwritten
+    // by using a data-autoslide attribute on your slides
+    autoSlide: 0,
+
+    // Stop auto-sliding after user input
+    autoSlideStoppable: true,
+
+    // Enable slide navigation via mouse wheel
+    mouseWheel: false,
+
+    // Hides the address bar on mobile devices
+    hideAddressBar: true,
+
+    // Opens links in an iframe preview overlay
+    previewLinks: false,
+
+    // Transition style
+    transition: 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+    // Transition speed
+    transitionSpeed: 'default', // default/fast/slow
+
+    // Transition style for full page slide backgrounds
+    backgroundTransition: 'default', // default/none/slide/concave/convex/zoom
+
+    // Number of slides away from the current that are visible
+    viewDistance: 3,
+
+    // Parallax background image
+    //parallaxBackgroundImage: '', // e.g. "'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg'"
+
+    // Parallax background size
+    //parallaxBackgroundSize: '' // CSS syntax, e.g. "2100px 900px"
+
+    theme: Reveal.getQueryHash().theme, // available themes are in reveal.js/css/theme
+    transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/none
+
+});
+
+Reveal.initialize({
+    dependencies: [
+        // Cross-browser shim that fully implements classList - https://github.com/eligrey/classList.js/
+        { src: 'reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+
+        // Interpret Markdown in <section> elements
+        { src: 'reveal.js/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+        { src: 'reveal.js/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+
+        // Syntax highlight for <code> elements
+        { src: 'reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+
+        // Zoom in and out with Alt+click
+        { src: 'reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+
+        // Speaker notes
+        { src: 'reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
+
+        // Remote control your reveal.js presentation using a touch device
+        //{ src: 'reveal.js/plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } },
+
+        // MathJax
+        //{ src: 'reveal.js/plugin/math/math.js', async: true }
+    ]
+});
+
+Reveal.initialize({
+
+    // The "normal" size of the presentation, aspect ratio will be preserved
+    // when the presentation is scaled to fit different resolutions. Can be
+    // specified using percentage units.
+    width: 1170,  // original: 960,
+    height: 700,
+
+    // Factor of the display size that should remain empty around the content
+    margin: 0.1,
+
+    // Bounds for smallest/largest possible scale to apply to content
+    minScale: 0.2,
+    maxScale: 1.0
+
+});
+</script>
+
+<!-- begin footer logo
+<div style="position: absolute; bottom: 0px; left: 0; margin-left: 0px">
+<img src="somelogo.png">
+</div>
+     end footer logo -->
+
+
+
+</body>
+</html>
