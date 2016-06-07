@@ -4,6 +4,9 @@ NOTE If you don't want to use the default OpenSSL version due to obsolesence
 or known security issues, install a newer version (LibreSSL recommended) and 
 put it ahead of the default openssl command on your path.
 
+Those who prefer to use a GUI tool for managing keys and keystores should consider
+[KeyStore Explorer](http://www.keystore-explorer.org/).
+
 Generate a Key Passphrase
 -------------------------
 
